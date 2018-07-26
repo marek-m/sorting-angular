@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {defer, Subject, timer} from 'rxjs/index';
-import {concatMap, delay, first, map, takeUntil, tap} from 'rxjs/internal/operators';
+import {Subject, timer} from 'rxjs/index';
+import {concatMap, first, map, takeUntil} from 'rxjs/internal/operators';
 
 @Component({
     selector: 'app-root',
@@ -14,7 +14,7 @@ export class AppComponent implements OnInit {
     public swap$: Subject<any> = new Subject<any>();
     public end$: Subject<boolean> = new Subject<boolean>();
     public currentIndexes: number[] = [];
-    public SORTING_TIME_MS = 500;
+    public SWAP_ANIMATION_TIME_MS = 500;
     public NUMBER_OF_ELEMENTS = 25;
     public animation = false;
     public containerSizeParams = {
@@ -44,11 +44,11 @@ export class AppComponent implements OnInit {
                 const tempLeft = this.positions[a];
                 this.positions[a] = this.positions[b];
                 this.positions[b] = tempLeft;
-                return this.delayValueByTime(this.SORTING_TIME_MS, value);
+                return this.delayValueByTime(this.SWAP_ANIMATION_TIME_MS, value);
             })
-        ).subscribe((v) => {
+        ).subscribe((value) => {
             this.animation = false;
-            const [a,  b, ...array] = v;
+            const [a, b, ...array] = value;
             this.bars = array;
             this.positions = [...this.positionsCopy];
         });

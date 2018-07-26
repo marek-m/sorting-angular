@@ -1,6 +1,5 @@
 <div class="bars-container" [ngStyle]="containerStyle">
-        <div *ngFor="let bar of bars; let i=index" [ngClass]="getBarClass(i)" [ngStyle]="getBarStyle(i)">
-            {{ bar }}
-        </div>
+    <div *ngFor="let bar of bars; let i=index" [ngClass]="getBarClass(i)" [ngStyle]="getBarStyle(i)">
+        {{ bar }}
+    </div>
 </div>
-<!--<app-test></app-test>-->
