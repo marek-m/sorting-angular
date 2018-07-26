@@ -15,19 +15,19 @@ export class AppComponent implements OnInit {
     public end$: Subject<boolean> = new Subject<boolean>();
     public currentIndexes: number[] = [];
     public SWAP_ANIMATION_TIME_MS = 500;
-    public NUMBER_OF_ELEMENTS = 25;
+    public NUMBER_OF_ELEMENTS = 20;
     public animation = false;
+    public steps = 0;
     public containerSizeParams = {
-        width: 400,
-        height: 200,
+        width: 600,
+        height: 400,
     };
     public ngOnInit() {
         // GENERATE RANDOM ELEMENTS
         for (let i = 0; i < this.NUMBER_OF_ELEMENTS; i++) {
             const height: number = Math.ceil(Math.random() * this.containerSizeParams.height);
             this.positions.push(
-                (this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS) * i
-                // + (this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS)
+                this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS * i
             );
             this.positionsCopy = [...this.positions];
 
@@ -38,6 +38,7 @@ export class AppComponent implements OnInit {
         this.swap$.pipe(
             takeUntil(this.end$),
             concatMap((value) => {
+                this.steps++;
                 this.animation = true;
                 const [a, b] = value;
                 this.currentIndexes = [a, b];
@@ -62,7 +63,7 @@ export class AppComponent implements OnInit {
         return {
             'left': this.animation ? `${this.positions[index]}px` : `${this.positionsCopy[index]}px`,
             'height': `${this.bars[index]}px`,
-            'width': `${(this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS)}px`,
+            'width': `${(this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS) - 4}px`,
         };
     }
 
