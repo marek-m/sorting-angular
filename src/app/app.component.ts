@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {Subject, timer} from 'rxjs/index';
-import {concatMap, first, map, takeUntil} from 'rxjs/internal/operators';
+import {defer, Subject, timer} from 'rxjs/index';
+import {concatMap, delay, first, map, takeUntil, tap} from 'rxjs/internal/operators';
 
 @Component({
     selector: 'app-root',
@@ -9,25 +9,75 @@ import {concatMap, first, map, takeUntil} from 'rxjs/internal/operators';
 })
 export class AppComponent implements OnInit {
     public bars: number[] = [];
+    public positions: number[] = [];
+    public positionsCopy: number[] = [];
     public swap$: Subject<any> = new Subject<any>();
     public end$: Subject<boolean> = new Subject<boolean>();
-    ngOnInit() {
+    public currentIndexes: number[] = [];
+    public SORTING_TIME_MS = 500;
+    public NUMBER_OF_ELEMENTS = 25;
+    public animation = false;
+    public containerSizeParams = {
+        width: 400,
+        height: 200,
+    };
+    public ngOnInit() {
         // GENERATE RANDOM ELEMENTS
-        for (let i = 0; i < 40; i++) {
-            const element = Math.ceil(Math.random() * 100);
-            this.bars.push(element);
+        for (let i = 0; i < this.NUMBER_OF_ELEMENTS; i++) {
+            const height: number = Math.ceil(Math.random() * this.containerSizeParams.height);
+            this.positions.push(
+                (this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS) * i
+                // + (this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS)
+            );
+            this.positionsCopy = [...this.positions];
+
+            this.bars.push(height);
         }
 
         // ANIMATION (SORT OF...)
         this.swap$.pipe(
             takeUntil(this.end$),
-            concatMap((value) => this.delayValueByTime(500, value))
-        ).subscribe((v) => this.bars = v);
+            concatMap((value) => {
+                this.animation = true;
+                const [a, b] = value;
+                this.currentIndexes = [a, b];
+                const tempLeft = this.positions[a];
+                this.positions[a] = this.positions[b];
+                this.positions[b] = tempLeft;
+                return this.delayValueByTime(this.SORTING_TIME_MS, value);
+            })
+        ).subscribe((v) => {
+            this.animation = false;
+            const [a,  b, ...array] = v;
+            this.bars = array;
+            this.positions = [...this.positionsCopy];
+        });
 
-        // EXECUTE BUBBLE SORT
+        // SORT
         this.bubbleSort([...this.bars]);
 
 
+    }
+    public getBarStyle(index: number) {
+        return {
+            'left': this.animation ? `${this.positions[index]}px` : `${this.positionsCopy[index]}px`,
+            'height': `${this.bars[index]}px`,
+            'width': `${(this.containerSizeParams.width / this.NUMBER_OF_ELEMENTS)}px`,
+        };
+    }
+
+    public getBarClass(i) {
+        return {
+            'bar': true,
+            'animate': this.animation ? this.currentIndexes.includes(i) : false
+        };
+    }
+
+    public get containerStyle() {
+        return {
+            'width': `${this.containerSizeParams.width}px`,
+            'height': `${this.containerSizeParams.height}px`
+        };
     }
 
     private bubbleSort(a) {
@@ -48,7 +98,7 @@ export class AppComponent implements OnInit {
         const temp =  array[a];
         array[a] = array[b];
         array[b] = temp;
-        return [...array];
+        return [a, b, ...array];
     }
 
     public delayValueByTime = (time, value) => {

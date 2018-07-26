@@ -1,10 +1,18 @@
-.app
-    width: 100%
+.bars-container
+    position: relative
+    background-color: beige
     .bar
-        border-bottom: 1px dotted white
-        height: 20px
+        border: 1px solid white
         background-color: black
         color: white
-
+        writing-mode: vertical-rl
+        text-orientation: mixed
+        position: absolute
+        top: 0
+    .animate
+        transition: background-color 0.2s ease, left 0.5s ease
+        background-color: orange
+        border: 1px solid black
+        z-index: 100
 
 

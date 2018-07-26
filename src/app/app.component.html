@@ -1,5 +1,6 @@
-<div class="app">
-<ng-container *ngFor="let bar of bars">
-    <div class="bar" [ngStyle]="{'width': bar + '%'}">{{ bar }}</div>
-</ng-container>
+<div class="bars-container" [ngStyle]="containerStyle">
+        <div *ngFor="let bar of bars; let i=index" [ngClass]="getBarClass(i)" [ngStyle]="getBarStyle(i)">
+            {{ bar }}
+        </div>
 </div>
+<!--<app-test></app-test>-->
