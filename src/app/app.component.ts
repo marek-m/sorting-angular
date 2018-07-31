@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Subject, timer} from 'rxjs/index';
-import {concatMap, first, map, takeUntil} from 'rxjs/internal/operators';
+import {concatMap, delay, filter, first, map, takeUntil, tap} from 'rxjs/internal/operators';
 
 @Component({
     selector: 'app-root',
@@ -37,15 +37,24 @@ export class AppComponent implements OnInit {
         // ANIMATION (SORT OF...)
         this.swap$.pipe(
             takeUntil(this.end$),
+            filter((value) => {
+                const [a, b] =  value;
+                return a !== b;
+            }),
             concatMap((value) => {
                 this.steps++;
                 this.animation = true;
                 const [a, b] = value;
+                console.log(a, b);
                 this.currentIndexes = [a, b];
-                const tempLeft = this.positions[a];
-                this.positions[a] = this.positions[b];
-                this.positions[b] = tempLeft;
-                return this.delayValueByTime(this.SWAP_ANIMATION_TIME_MS, value);
+                return this.delayValueByTime(500, value).pipe(
+                    tap(() => {
+                        const tempLeft = this.positions[a];
+                        this.positions[a] = this.positions[b];
+                        this.positions[b] = tempLeft;
+                    }),
+                    delay(200)
+                );
             })
         ).subscribe((value) => {
             this.animation = false;
@@ -56,6 +65,7 @@ export class AppComponent implements OnInit {
 
         // SORT
         this.bubbleSort([...this.bars]);
+        //this.quickSort([...this.bars], 0, this.bars.length - 1);
 
 
     }
@@ -94,6 +104,68 @@ export class AppComponent implements OnInit {
         } while (swapped);
         this.end$.next(true);
     }
+
+    private quickSort(arr, left, right) {
+        const len = arr.length;
+        let pivot;
+        let partitionIndex;
+
+
+        if (left < right) {
+            pivot = right;
+            partitionIndex = this.partition(arr, pivot, left, right);
+
+            // sort left and right
+            this.quickSort(arr, left, partitionIndex - 1);
+            this.quickSort(arr, partitionIndex + 1, right);
+        }
+        return arr;
+    }
+
+    private partition(arr, pivot, left, right) {
+        const pivotValue = arr[pivot];
+        let partitionIndex = left;
+
+        for (let i = left; i < right; i++) {
+            if (arr[i] < pivotValue) {
+                this.swap$.next(this.swap(i, partitionIndex, arr));
+                partitionIndex++;
+            }
+        }
+        this.swap$.next(this.swap(right, partitionIndex, arr));
+        return partitionIndex;
+    }
+
+    private mergeSort(arr) {
+        const len = arr.length;
+        if (len < 2) {
+            return arr;
+        }
+        const mid = Math.floor(len / 2);
+        const left = arr.slice(0, mid);
+        const right = arr.slice(mid);
+        // send left and right to the mergeSort to broke it down into pieces
+        // then merge those
+        return this.merge(this.mergeSort(left), this.mergeSort(right));
+    }
+    private merge(left, right) {
+        const result = [];
+        const lLen = left.length;
+        const rLen = right.length;
+        let l = 0;
+        let r = 0;
+        while ( l < lLen && r < rLen ) {
+            if ( left[l] < right[r] ) {
+                result.push(left[l++]);
+            } else {
+                result.push(right[r++]);
+            }
+        }
+        // remaining part needs to be addred to the result
+        return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+
+
 
     private swap(a, b, array) {
         const temp =  array[a];
