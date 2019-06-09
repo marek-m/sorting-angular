@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Subject, timer} from 'rxjs/index';
-import {concatMap, delay, filter, first, map, takeUntil, tap} from 'rxjs/internal/operators';
+import {concatMap, delay, filter, first, map, mapTo, takeUntil, tap} from 'rxjs/internal/operators';
 
 @Component({
     selector: 'app-root',
@@ -14,10 +14,11 @@ export class AppComponent implements OnInit {
     public swap$: Subject<any> = new Subject<any>();
     public end$: Subject<boolean> = new Subject<boolean>();
     public currentIndexes: number[] = [];
-    public SWAP_ANIMATION_TIME_MS = 500;
+    public SWAP_ANIMATION_TIME_MS = 2000;
     public NUMBER_OF_ELEMENTS = 20;
     public animation = false;
     public steps = 0;
+    public swaps = '';
     public containerSizeParams = {
         width: 600,
         height: 400,
@@ -33,29 +34,29 @@ export class AppComponent implements OnInit {
 
             this.bars.push(height);
         }
-
         // ANIMATION (SORT OF...)
         this.swap$.pipe(
-            takeUntil(this.end$),
             filter((value) => {
                 const [a, b] =  value;
                 return a !== b;
             }),
+            delay(3000),
             concatMap((value) => {
                 this.steps++;
                 this.animation = true;
                 const [a, b] = value;
                 console.log(a, b);
                 this.currentIndexes = [a, b];
-                return this.delayValueByTime(500, value).pipe(
+                return this.delayValueByTime(5000, value).pipe(
                     tap(() => {
                         const tempLeft = this.positions[a];
                         this.positions[a] = this.positions[b];
                         this.positions[b] = tempLeft;
                     }),
-                    delay(200)
+                    delay(5000)
                 );
-            })
+            }),
+            takeUntil(this.end$),
         ).subscribe((value) => {
             this.animation = false;
             const [a, b, ...array] = value;
@@ -64,10 +65,10 @@ export class AppComponent implements OnInit {
         });
 
         // SORT
-        this.bubbleSort([...this.bars]);
-        //this.quickSort([...this.bars], 0, this.bars.length - 1);
+        // this.bubbleSort([...this.bars]);
+        this.quickSort([...this.bars], 0, this.bars.length - 1);
 
-
+        console.log(this.swaps);
     }
     public getBarStyle(index: number) {
         return {
