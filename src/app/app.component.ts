@@ -14,7 +14,6 @@ export class AppComponent implements OnInit {
     public swap$: Subject<any> = new Subject<any>();
     public end$: Subject<boolean> = new Subject<boolean>();
     public currentIndexes: number[] = [];
-    public SWAP_ANIMATION_TIME_MS = 500;
     public NUMBER_OF_ELEMENTS = 20;
     public animation = false;
     public steps = 0;
